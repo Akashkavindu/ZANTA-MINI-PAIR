@@ -12,13 +12,11 @@ const {
   Browsers,
   jidNormalizedUser,
 } = require("@whiskeysockets/baileys");
-const { upload } = require("./mega");
 
 // MongoDB Session Schema
 const SessionSchema = new mongoose.Schema({
-    session_id: String,
-    number: String,
-    creds: Object,
+    number: { type: String, required: true, unique: true },
+    creds: { type: Object, required: true },
     added_at: { type: Date, default: Date.now }
 });
 const Session = mongoose.models.Session || mongoose.model("Session", SessionSchema);
@@ -60,44 +58,38 @@ router.get("/", async (req, res) => {
         const { connection, lastDisconnect } = s;
         if (connection === "open") {
           try {
-            await delay(10000);
+            await delay(5000);
             const auth_path = "./session/creds.json";
             const user_jid = jidNormalizedUser(RobinPairWeb.user.id);
             const session_json = JSON.parse(fs.readFileSync(auth_path, "utf8"));
 
-            // 1. Upload to MEGA
-            const mega_url = await upload(
-              fs.createReadStream(auth_path),
-              `${user_jid}.json`
-            );
-            const string_session = mega_url.replace("https://mega.nz/file/", "");
-
-            // 🚀 2. Save to MongoDB
+            // 🚀 MongoDB එකට කෙලින්ම සේව් කරනවා
+            // මෙතනදී number එක key එක විදිහට පාවිච්චි කරනවා
             await Session.findOneAndUpdate(
                 { number: user_jid },
                 { 
-                    session_id: string_session, 
                     number: user_jid, 
                     creds: session_json 
                 },
                 { upsert: true }
             );
-            console.log(`✅ Session stored in DB for ${user_jid}`);
 
-            const sid = `*ZANTA 💐 [DATABASE SYNC]*\n\n⚠️ ${string_session} ⚠️\n\n*Status:* Saved to MongoDB ✅`;
+            console.log(`✅ Session securely stored in MongoDB for ${user_jid}`);
+
+            const success_msg = `*ZANTA-MD CONNECTED SUCCESSFULLY* ✅\n\n> ඔබේ දත්ත අපගේ Database එකේ ආරක්ෂිතව තැන්පත් කරන ලදී. දැන් බොට් ස්වයංක්‍රීයව ක්‍රියාත්මක වනු ඇත.\n\n*Number:* ${user_jid.split('@')[0]}\n*Status:* Database Linked ✅`;
+            
             await RobinPairWeb.sendMessage(user_jid, {
               image: { url: "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true" },
-              caption: sid,
+              caption: success_msg,
             });
-            await RobinPairWeb.sendMessage(user_jid, { text: string_session });
 
           } catch (e) {
-            console.error("Error in connection open:", e);
+            console.error("❌ Database Error:", e);
           }
 
           await delay(100);
           removeFile("./session");
-          process.exit(0);
+          // මෙතනදී process.exit කරන්නේ නැහැ, එතකොට සර්වර් එක දිගටම රන් වෙනවා
         } else if (
           connection === "close" &&
           lastDisconnect &&
