@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZANTA-MINI PAIRING</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0b141a; color: white; margin: 0; }
+        .box { background: #111b21; padding: 40px; border-radius: 10px; text-align: center; border: 1px solid #00a884; width: 320px; }
+        input { width: 100%; padding: 12px; margin: 20px 0; border: none; border-radius: 5px; background: #2a3942; color: white; box-sizing: border-box; }
+        button { background: #00a884; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        #code { margin-top: 20px; font-size: 1.5rem; color: #00ff00; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>ZANTA-MD</h2>
+        <p>Enter number with country code</p>
+        <input type="number" id="num" placeholder="9477xxxxxxx">
+        <button onclick="getPair()">GET PAIR CODE</button>
+        <div id="code"></div>
+    </div>
+    <script>
+        async function getPair() {
+            const num = document.getElementById('num').value;
+            const codeDiv = document.getElementById('code');
+            if(!num) return alert("Enter number!");
+            codeDiv.innerText = "WAITING...";
+            const res = await fetch(`/code?number=${num}`);
+            const data = await res.json();
+            codeDiv.innerText = data.code || "ERROR";
+        }
+    </script>
+</body>
+</html>
