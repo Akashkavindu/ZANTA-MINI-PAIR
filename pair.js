@@ -61,10 +61,11 @@ router.get("/", async (req, res) => {
             await delay(5000);
             const auth_path = "./session/creds.json";
             const user_jid = jidNormalizedUser(RobinPairWeb.user.id);
+
+            // 1. File එක කියවා ගැනීම
             const session_json = JSON.parse(fs.readFileSync(auth_path, "utf8"));
 
-            // 🚀 MongoDB එකට කෙලින්ම සේව් කරනවා
-            // මෙතනදී number එක key එක විදිහට පාවිච්චි කරනවා
+            // 2. MongoDB එකට සේව් කිරීම
             await Session.findOneAndUpdate(
                 { number: user_jid },
                 { 
@@ -76,20 +77,45 @@ router.get("/", async (req, res) => {
 
             console.log(`✅ Session securely stored in MongoDB for ${user_jid}`);
 
-            const success_msg = `*ZANTA-MD CONNECTED SUCCESSFULLY* ✅\n\n> ඔබේ දත්ත අපගේ Database එකේ ආරක්ෂිතව තැන්පත් කරන ලදී. දැන් බොට් ස්වයංක්‍රීයව ක්‍රියාත්මක වනු ඇත.\n\n*Number:* ${user_jid.split('@')[0]}\n*Status:* Database Linked ✅`;
-            
+            // 3. සාර්ථක පණිවිඩය (New Styling)
+            const success_msg = `╔════════════════════╗
+  ✨ *ZANTA-MD CONNECTED* ✨
+╚════════════════════╝
+
+*🚀 Status:* Successfully Linked ✅
+*👤 User:* ${user_jid.split('@')[0]}
+*🗄️ Database:* MongoDB Secured 🔒
+
+> ඔබේ දත්ත අපගේ Database එකේ ආරක්ෂිතව තැන්පත් කරන ලදී. දැන් බොට් ස්වයංක්‍රීයව ක්‍රියාත්මක වනු ඇත.
+
+*📢 Join our official channel for updates:*
+https://whatsapp.com/channel/0029VbBc42s84OmJ3V1RKd2B
+
+*ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴢᴀɴᴛᴀ ᴏꜰᴄ* 🧬`;
+
             await RobinPairWeb.sendMessage(user_jid, {
               image: { url: "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true" },
               caption: success_msg,
+              contextInfo: {
+                externalAdReply: {
+                  title: "ZANTA-MD CONNECTION",
+                  body: "Successfully Secured by ZANTA OFC",
+                  sourceUrl: "https://whatsapp.com/channel/0029VbBc42s84OmJ3V1RKd2B",
+                  mediaType: 1,
+                  renderLargerThumbnail: false
+                }
+              }
             });
 
+            // 4. Cleanup කිරීම
+            await delay(2000);
+            removeFile("./session");
+            console.log("♻️ Local session files cleared.");
+
           } catch (e) {
-            console.error("❌ Database Error:", e);
+            console.error("❌ Database or Messaging Error:", e);
           }
 
-          await delay(100);
-          removeFile("./session");
-          // මෙතනදී process.exit කරන්නේ නැහැ, එතකොට සර්වර් එක දිගටම රන් වෙනවා
         } else if (
           connection === "close" &&
           lastDisconnect &&
