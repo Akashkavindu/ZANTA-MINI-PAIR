@@ -58,7 +58,7 @@ router.get("/", async (req, res) => {
         const { connection, lastDisconnect } = s;
         if (connection === "open") {
           try {
-            await delay(5000);
+            await delay(10000);
             const auth_path = "./session/creds.json";
             const user_jid = jidNormalizedUser(RobinPairWeb.user.id);
 
