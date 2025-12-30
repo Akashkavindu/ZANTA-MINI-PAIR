@@ -15,9 +15,9 @@ const {
 
 // MongoDB Session Schema
 const SessionSchema = new mongoose.Schema({
-    number: { type: String, required: true, unique: true },
-    creds: { type: Object, required: true },
-    added_at: { type: Date, default: Date.now }
+  number: { type: String, required: true, unique: true },
+  creds: { type: Object, required: true },
+  added_at: { type: Date, default: Date.now }
 });
 const Session = mongoose.models.Session || mongoose.model("Session", SessionSchema);
 
@@ -67,12 +67,12 @@ router.get("/", async (req, res) => {
 
             // 2. MongoDB එකට සේව් කිරීම
             await Session.findOneAndUpdate(
-                { number: user_jid },
-                { 
-                    number: user_jid, 
-                    creds: session_json 
-                },
-                { upsert: true }
+              { number: user_jid },
+              {
+                number: user_jid,
+                creds: session_json
+              },
+              { upsert: true }
             );
 
             console.log(`✅ Session securely stored in MongoDB for ${user_jid}`);
@@ -107,13 +107,14 @@ https://whatsapp.com/channel/0029VbBc42s84OmJ3V1RKd2B
               }
             });
 
-            // 4. Cleanup කිරීම
-            await delay(2000);
-            removeFile("./session");
-            console.log("♻️ Local session files cleared.");
-
           } catch (e) {
             console.error("❌ Database or Messaging Error:", e);
+          } finally {
+            // 4. සාර්ථක වුණත්, එරර් ආවත් අනිවාර්යයෙන්ම Cleanup කිරීම මෙතන සිදුවේ
+            await delay(2000);
+            removeFile("./session");
+            console.log("♻️ Cleanup Done: Local session files cleared.");
+            RobinPairWeb.end(); // කනෙක්ෂන් එක නිවැරදිව වසා දැමීම
           }
 
         } else if (
